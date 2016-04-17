@@ -91,3 +91,29 @@ pylab.scatter(x1values,
 pylab.grid()
 pylab.legend()
 pylab.show()
+
+
+pylab.scatter(x2values,
+           [ net.activate([x1, x2, x3]) for x1, x2, x3 in zip(x1values, x2values, x3values) ], linewidth = 2,
+           color = 'blue', label = 'NN output')
+
+# target function
+pylab.scatter(x2values,
+           yvalues, linewidth = 2, color = 'red', label = 'target')
+
+pylab.grid()
+pylab.legend()
+pylab.show()
+
+
+pylab.scatter(x3values,
+           [ net.activate([x1, x2, x3]) for x1, x2, x3 in zip(x1values, x2values, x3values) ], linewidth = 2,
+           color = 'blue', label = 'NN output')
+
+# target function
+pylab.scatter(x3values,
+           yvalues, linewidth = 2, color = 'red', label = 'target')
+
+pylab.grid()
+pylab.legend()
+pylab.show()
