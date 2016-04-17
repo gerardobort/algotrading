@@ -9,10 +9,12 @@ table = data.transpose()
 table = table[table[:,0].argsort()] # sort table by column 0 (timepstamps)
 
 x = range(table.shape[0])
-y1 = table[:,2]
-y2 = table[:,3]
+y1 = table[:,2] - np.min(table[:,2])
+y2 = table[:,8]
+y3 = table[:,9] / np.median(table[:,9])
 plt.plot(x, y1)
 plt.plot(x, y2)
+plt.plot(x, y3)
 
 
 plt.title(security + ": Price Interdiary Historic")
