@@ -21,11 +21,14 @@ def getSecurityHistory(strEspecie):
         conn.request("POST", "/VistasDL/PaginaIntradiarioEspecies.aspx/GetIntradiarioHistorico", body, headers)
         response = conn.getresponse()
         print response.status, response.reason
-        jsondata = json.load(response)
-        conn.close()
-        with open(strFilename, 'w') as outfile:
-            json.dump(jsondata, outfile)
-            outfile.close()
+        if 200 == response.status:
+            jsondata = json.load(response)
+            conn.close()
+            with open(strFilename, 'w') as outfile:
+                json.dump(jsondata, outfile)
+                outfile.close()
+        else:
+            return
     series = jsondata['d'].pop()['EspeciesSeries']
 
     # all dates represented here are at GMT-3 (Buenos Aires)
