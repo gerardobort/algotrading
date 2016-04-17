@@ -52,6 +52,8 @@ def getSecurityHistory(strEspecie):
             #datetimeDates,
             #strDates,
             ])
+    data = data.transpose()
+    data = data[data[:,0].argsort()] # sort data by column 0 (timepstamps)
     return data
 
 

@@ -4,9 +4,7 @@ import datetime
 from matplotlib import dates
 
 security = 'ALUA'
-data = bolsar.getSecurityHistory(security)
-table = data.transpose()
-table = table[table[:,0].argsort()] # sort table by column 0 (timepstamps)
+table = bolsar.getSecurityHistory(security)
 
 x = range(table.shape[0])
 y1 = table[:,2] - np.min(table[:,2])
