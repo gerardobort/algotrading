@@ -12,7 +12,7 @@ def getTrainingTableSamples(table):
     x2values = table[:-1,9] / np.median(table[:-1,9]) #Operaciones
     x3values = table[:-1,10] / np.median(table[:-1,10]) #TotalOperadoVn
     # iy = [1,2,3,4...8,9]
-    y0values = table[1:,8] / np.mean(table[1:,8]) #VariacionPrecio lshifted
+    y0values = table[1:,8] #VariacionPrecio lshifted
     yvalues = np.sign(y0values).astype(np.float)
     return x1values, x2values, x3values, yvalues
 
@@ -24,7 +24,7 @@ def getTestTableSamples(table, todayIndex):
     x2 = table[todayIndex,9] / np.median(table[:todayIndex+1,9]) #Operaciones
     x3 = table[todayIndex,10] / np.median(table[:todayIndex+1,10]) #TotalOperadoVn
     # iy = [1,2,3,4...8,9]
-    y0 = table[todayIndex+1,8] / np.mean(table[1:todayIndex+1,8]) #VariacionPrecio lshifted
+    y0 = table[todayIndex+1,8] #VariacionPrecio lshifted
     y = float(np.sign(y0))
     return x1, x2, x3, y
 
@@ -78,8 +78,8 @@ else:
 #----------
 # evaluate
 #----------
-table = bolsar.getSecurityHistory('PAMP')
-table = table[0:400]
+table = bolsar.getSecurityHistory('ALUA')
+#table = table[0:5000]
 
 # neural net approximation
 acertions = 0
@@ -87,14 +87,13 @@ tries = 0
 zeros = 0
 
 xAxis = np.arange(table.shape[0] - 1) # minus one dimension
-yAxisReal = table[:-1,8].astype(np.float)
+yAxisReal = np.sign(np.roll(table[:-1,8],1)).astype(np.float)
 yAxisPredicted = np.empty([table.shape[0]-1, 1]) # initialize prodictions list
 results = yAxisPredicted.copy()
 
 for i in xAxis:
     x1, x2, x3, futureY = getTestTableSamples(table, i)
     yAxisPredicted[i] = predictedY = net.activate([x1, x2, x3])[0]
-    print('result:', predictedY, futureY, yAxisReal[i])
     if (predictedY * futureY >= 0):
         acertions = acertions + 1
     if (predictedY * futureY == 0):
@@ -114,14 +113,7 @@ print(float(acertions)/tries)
 import pylab
 pylab.plot(xAxis, yAxisReal, linewidth = 1, color = 'red', label = 'real output')
 pylab.plot(xAxis, yAxisPredicted, linewidth = 1, color = 'blue', label = 'NN output')
-#pylab.plot(xAxis, results, linewidth = 1, color = 'green', label = 'NN output')
-
-pylab.scatter([0,1], [-2,2], linewidth = 1, color = 'yellow', label = 'edge')
 
 pylab.grid()
 pylab.legend()
 pylab.show()
-#print(xAxis)
-#print(yAxisReal)
-#print(yAxisPredicted)
-
