@@ -18,15 +18,6 @@ def getPredictiveTableSamples(table):
     yvalues[np.where(y0values <= 0)] = -1
     return x1values, x2values, x3values, yvalues
 
-def getRealTableSamples(table):
-    x1values = table[:,8] / np.mean(table[:,8]) #VariacionPrecio lshifted
-    x2values = table[:,9] / np.median(table[:,9]) #Operaciones lshifted
-    x3values = table[:,10] / np.median(table[:,10]) #TotalOperadoVn lshifted
-    y0values = table[:,8] / np.mean(table[:,8]) #VariacionPrecio rshifted
-    yvalues = y0values.copy()
-    yvalues[np.where(y0values > 0)] = 1
-    yvalues[np.where(y0values <= 0)] = -1
-    return x1values, x2values, x3values, yvalues
 
 table = bolsar.getSecurityHistory('ALUA')
 x1values, x2values, x3values, yvalues = getPredictiveTableSamples(table)
