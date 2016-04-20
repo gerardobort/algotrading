@@ -16,15 +16,15 @@ def getTrainingTableSamples(table):
     yvalues = np.sign(y0values).astype(np.float)
     return x1values, x2values, x3values, yvalues
 
-def getTestTableSamples(table, todayIndex):
+def getTestTableSample(table, operationIndex):
     # ix = [0,1,2,3...7,8]
-    if (table[todayIndex,8] == 0):
+    if (table[operationIndex,8] == 0):
         return 0, 0, 0, 0 
-    x1 = table[todayIndex,8] / np.mean(table[:todayIndex+1,8]) #VariacionPrecio
-    x2 = table[todayIndex,9] / np.median(table[:todayIndex+1,9]) #Operaciones
-    x3 = table[todayIndex,10] / np.median(table[:todayIndex+1,10]) #TotalOperadoVn
+    x1 = table[operationIndex,8] / np.mean(table[:operationIndex+1,8]) #VariacionPrecio
+    x2 = table[operationIndex,9] / np.median(table[:operationIndex+1,9]) #Operaciones
+    x3 = table[operationIndex,10] / np.median(table[:operationIndex+1,10]) #TotalOperadoVn
     # iy = [1,2,3,4...8,9]
-    y0 = table[todayIndex+1,8] #VariacionPrecio lshifted
+    y0 = table[operationIndex+1,8] #VariacionPrecio lshifted
     y = float(np.sign(y0))
     return x1, x2, x3, y
 
@@ -89,7 +89,7 @@ yAxisPredicted = np.empty([table.shape[0]-1, 1]) # initialize prodictions list
 results = yAxisPredicted.copy()
 
 for i in xAxis:
-    x1, x2, x3, futureY = getTestTableSamples(table, i)
+    x1, x2, x3, futureY = getTestTableSample(table, i)
     yAxisPredicted[i] = predictedY = net.activate([x1, x2, x3])[0]
     if (predictedY * futureY >= 0):
         acertions = acertions + 1
