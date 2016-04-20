@@ -58,15 +58,12 @@ else:
     #----------
     ds = SupervisedDataSet(3, 1)
 
-    table = bolsar.getSecurityHistory('ALUA')
-    x1values, x2values, x3values, yvalues = getTrainingTableSamples(table)
-    for x1, x2, x3, y in zip(x1values, x2values, x3values, yvalues):
-        ds.addSample((x1, x2, x3), (y,))
-
-    table = bolsar.getSecurityHistory('YPFD')
-    x1values, x2values, x3values, yvalues = getTrainingTableSamples(table)
-    for x1, x2, x3, y in zip(x1values, x2values, x3values, yvalues):
-        ds.addSample((x1, x2, x3), (y,))
+    trainingSecurities = ['YPFD', 'ALUA', 'BMA', 'COME']
+    for security in trainingSecurities:
+        table = bolsar.getSecurityHistory(security)
+        x1values, x2values, x3values, yvalues = getTrainingTableSamples(table)
+        for x1, x2, x3, y in zip(x1values, x2values, x3values, yvalues):
+            ds.addSample((x1, x2, x3), (y,))
 
     from pybrain.supervised.trainers import BackpropTrainer
     trainer = BackpropTrainer(net, ds, verbose = True)
