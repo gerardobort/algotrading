@@ -65,15 +65,16 @@ else:
     #----------
     # train
     #----------
-    ds = SupervisedDataSet(3, 1)
+    ds = SupervisedDataSet(3*(LPAD+1), 1)
 
     trainingSecurities = ['YPFD', 'ALUA', 'BMA', 'COME']
     for security in trainingSecurities:
         table = bolsar.getSecurityHistory(security)
         x1values, x2values, x3values, yvalues = getTrainingTableSamples(table)
         for i in range(LPAD+1, yvalues.shape[0]-RPAD):
-            inp = np.concatenate(x1values[i-(LPAD+1):i], x2values[i-(LPAD+1):i], x3values[i-(LPAD+1):i])
-        ds.addSample(tuple(inp), (y,))
+            inp = np.concatenate((x1values[i-(LPAD+1):i], x2values[i-(LPAD+1):i], x3values[i-(LPAD+1):i]))
+            out = yvalues[i]
+            ds.addSample(tuple(inp), (out,))
 
     from pybrain.supervised.trainers import BackpropTrainer
     trainer = BackpropTrainer(net, ds, verbose = True)
