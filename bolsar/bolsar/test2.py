@@ -6,6 +6,9 @@ import numpy, math
 import numpy as np
 import bolsar
 
+LPAD = 4
+RPAD = 1
+
 def getTrainingTableSamples(table):
     # ix = [0,1,2,3...7,8]
     x1values = table[:-1,8] / np.mean(table[:-1,8]) #VariacionPrecio
@@ -18,15 +21,21 @@ def getTrainingTableSamples(table):
 
 def getTestTableSample(table, operationIndex):
     # ix = [0,1,2,3...7,8]
-    if (table[operationIndex,8] == 0):
+    if (table[operationIndex,8] == 0) or (operationIndex <= LPAD):
         return 0, 0, 0, 0 
-    x1 = table[operationIndex,8] / np.mean(table[:operationIndex+1,8]) #VariacionPrecio
-    x2 = table[operationIndex,9] / np.median(table[:operationIndex+1,9]) #Operaciones
-    x3 = table[operationIndex,10] / np.median(table[:operationIndex+1,10]) #TotalOperadoVn
+    inp = np.array([])
+    for i in range(LPAD+1):
+        j = operationIndex - LPAD + i
+        x1 = table[j,8] / np.mean(table[:j+1,8]) #VariacionPrecio
+        x2 = table[j,9] / np.median(table[:j+1,9]) #Operaciones
+        x3 = table[j,10] / np.median(table[:j+1,10]) #TotalOperadoVn
+        inp.add(x1)
+        inp.add(x2)
+        inp.add(x3)
     # iy = [1,2,3,4...8,9]
-    y0 = table[operationIndex+1,8] #VariacionPrecio lshifted
+    y0 = table[operationIndex+RPAD,8] #VariacionPrecio lshifted
     y = float(np.sign(y0))
-    return x1, x2, x3, y
+    return tuple(inp), (y,)
 
 
 
@@ -46,7 +55,7 @@ strFilename = 'data/nn.xml'
 if (os.path.exists(strFilename)):
     net = NetworkReader.readFrom(strFilename)
 else:
-    net = buildNetwork(3,
+    net = buildNetwork(3*(LPAD+1),
                        100, # number of hidden units
                        1,
                        bias = True,
@@ -56,14 +65,16 @@ else:
     #----------
     # train
     #----------
-    ds = SupervisedDataSet(3, 1)
+    ds = SupervisedDataSet(3*(LPAD+1), 1)
 
     trainingSecurities = ['YPFD', 'ALUA', 'BMA', 'COME']
     for security in trainingSecurities:
         table = bolsar.getSecurityHistory(security)
         x1values, x2values, x3values, yvalues = getTrainingTableSamples(table)
-        for x1, x2, x3, y in zip(x1values, x2values, x3values, yvalues):
-            ds.addSample((x1, x2, x3), (y,))
+        for i in range(LPAD+1, yvalues.shape[0]-RPAD):
+            inp = np.concatenate((x1values[i-(LPAD+1):i], x2values[i-(LPAD+1):i], x3values[i-(LPAD+1):i]))
+            out = yvalues[i]
+            ds.addSample(tuple(inp), (out,))
 
     from pybrain.supervised.trainers import BackpropTrainer
     trainer = BackpropTrainer(net, ds, verbose = True)
@@ -88,9 +99,9 @@ yAxisReal = np.sign(np.roll(table[:-1,8],1)).astype(np.float)
 yAxisPredicted = np.empty([table.shape[0]-1, 1]) # initialize prodictions list
 results = yAxisPredicted.copy()
 
-for i in xAxis:
-    x1, x2, x3, futureY = getTestTableSample(table, i)
-    yAxisPredicted[i] = predictedY = net.activate([x1, x2, x3])[0]
+for i in xAxis[LPAD+1:]:
+    inp, futureY = getTestTableSample(table, i)
+    yAxisPredicted[i] = predictedY = net.activate(list(inp))[0]
     if (predictedY * futureY >= 0):
         acertions = acertions + 1
     if (predictedY * futureY == 0):
