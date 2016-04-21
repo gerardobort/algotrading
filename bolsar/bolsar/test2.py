@@ -21,21 +21,22 @@ def getTrainingTableSamples(table):
 
 def getTestTableSample(table, operationIndex):
     # ix = [0,1,2,3...7,8]
-    if (table[operationIndex,8] == 0) or (operationIndex < LPAD):
-        print('had to exit', operationIndex)
+    if (operationIndex < LPAD):
         return tuple(np.zeros(3*(LPAD+1))), (0,) 
     inp = np.array([])
     for i in range(LPAD+1):
         j = operationIndex - LPAD + i
-        x1 = table[j,8] / np.mean(table[:j+1,8]) #VariacionPrecio
+        if (table[j,8] != 0):
+            x1 = table[j,8] / np.mean(table[:j+1,8]) #VariacionPrecio
+        else:
+            x1 = 0
         x2 = table[j,9] / np.median(table[:j+1,9]) #Operaciones
         x3 = table[j,10] / np.median(table[:j+1,10]) #TotalOperadoVn
         inp = np.append(inp, [x1, x2, x3])
     # iy = [1,2,3,4...8,9]
     y0 = table[operationIndex+RPAD,8] #VariacionPrecio lshifted
     y = float(np.sign(y0))
-    print('test',inp, y)
-    return tuple(inp), (y,)
+    return tuple(inp), y
 
 
 
@@ -86,7 +87,7 @@ else:
 #----------
 # evaluate
 #----------
-table = bolsar.getSecurityHistory('ALUA')
+table = bolsar.getSecurityHistory('AUSO')
 #table = table[0:5000]
 
 # neural net approximation
@@ -97,14 +98,18 @@ zeros = 0
 xAxis = np.arange(table.shape[0] - 1) # minus one dimension
 yAxisReal = np.sign(np.roll(table[:-1,8],1)).astype(np.float)
 yAxisPredicted = np.empty([table.shape[0]-1, 1]) # initialize prodictions list
+
+xyAcertions = ([], [])
+
 results = yAxisPredicted.copy()
 
 for i in xAxis[LPAD+1:]:
     inp, futureY = getTestTableSample(table, i)
-    print(inp, futureY)
     yAxisPredicted[i] = predictedY = net.activate(list(inp))[0]
     if (predictedY * futureY >= 0):
         acertions = acertions + 1
+        xyAcertions[0].append(i)
+        xyAcertions[1].append(predictedY)
     if (predictedY * futureY == 0):
         zeros = zeros + 1
     tries = tries + 1
@@ -121,7 +126,8 @@ print(float(acertions)/tries)
 
 import pylab
 pylab.plot(xAxis, yAxisReal, linewidth = 1, color = 'red', label = 'real output')
-pylab.plot(xAxis, yAxisPredicted, linewidth = 1, color = 'blue', label = 'NN output')
+pylab.plot(xAxis+1, yAxisPredicted, linewidth = 1, color = 'blue', label = 'NN output')
+pylab.plot(xyAcertions[0], xyAcertions[1], linewidth = 2, color = 'green', label = 'NN acertions')
 
 pylab.grid()
 pylab.legend()
