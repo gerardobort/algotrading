@@ -6,7 +6,7 @@ import numpy, math
 import numpy as np
 import bolsar
 
-LPAD = 4
+LPAD = 12
 RPAD = 1
 
 def getTrainingTableSamples(table):
