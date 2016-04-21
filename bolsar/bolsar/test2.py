@@ -21,20 +21,20 @@ def getTrainingTableSamples(table):
 
 def getTestTableSample(table, operationIndex):
     # ix = [0,1,2,3...7,8]
-    if (table[operationIndex,8] == 0) or (operationIndex <= LPAD):
-        return 0, 0, 0, 0 
+    if (table[operationIndex,8] == 0) or (operationIndex < LPAD):
+        print('had to exit', operationIndex)
+        return tuple(np.zeros(3*(LPAD+1))), (0,) 
     inp = np.array([])
     for i in range(LPAD+1):
         j = operationIndex - LPAD + i
         x1 = table[j,8] / np.mean(table[:j+1,8]) #VariacionPrecio
         x2 = table[j,9] / np.median(table[:j+1,9]) #Operaciones
         x3 = table[j,10] / np.median(table[:j+1,10]) #TotalOperadoVn
-        inp.add(x1)
-        inp.add(x2)
-        inp.add(x3)
+        inp = np.append(inp, [x1, x2, x3])
     # iy = [1,2,3,4...8,9]
     y0 = table[operationIndex+RPAD,8] #VariacionPrecio lshifted
     y = float(np.sign(y0))
+    print('test',inp, y)
     return tuple(inp), (y,)
 
 
@@ -101,6 +101,7 @@ results = yAxisPredicted.copy()
 
 for i in xAxis[LPAD+1:]:
     inp, futureY = getTestTableSample(table, i)
+    print(inp, futureY)
     yAxisPredicted[i] = predictedY = net.activate(list(inp))[0]
     if (predictedY * futureY >= 0):
         acertions = acertions + 1
