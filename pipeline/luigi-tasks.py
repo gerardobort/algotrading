@@ -62,6 +62,15 @@ class GenerateSecurityIntradayIndicators(luigi.Task):
         return luigi.LocalTarget(self.date.strftime('data/SecurityIntradayIndicators_' + self.security_code + '_%Y-%m-%d.tsv'))
 
 
+class GenerateSecurityIntradayCorrelationIndicators(luigi.Task):
+
+    date = luigi.DateParameter(default=datetime.date.today())
+    security_codes = luigi.Parameter()
+
+    def requires(self):
+        for security_code in self.security_codes.split(','):
+            yield GenerateSecurityIntradayIndicators(date=self.date, security_code=security_code)
+
 
 if __name__ == "__main__":
     luigi.run()
